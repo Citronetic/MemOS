@@ -1150,7 +1150,7 @@ class APIConfig:
                     "user_id": user_id,
                     "cube_id": f"{user_name}_default_cube",
                     "text_mem": {
-                        "backend": "tree_text",
+                        "backend": os.getenv("MOS_TEXT_MEM_TYPE", "general_text"),
                         "config": {
                             "extractor_llm": {"backend": "openai", "config": openai_config},
                             "dispatcher_llm": {"backend": "openai", "config": openai_config},
@@ -1231,7 +1231,7 @@ class APIConfig:
                     "user_id": "default",
                     "cube_id": "default_cube",
                     "text_mem": {
-                        "backend": "tree_text",
+                        "backend": os.getenv("MOS_TEXT_MEM_TYPE", "general_text"),
                         "config": {
                             "extractor_llm": {"backend": "openai", "config": openai_config},
                             "dispatcher_llm": {"backend": "openai", "config": openai_config},

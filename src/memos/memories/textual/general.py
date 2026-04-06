@@ -126,8 +126,13 @@ class GeneralTextMemory(BaseTextMemory):
         Returns:
             list[TextualMemoryItem]: List of matching memories.
         """
+        logger.info(f"[GeneralTextMemory.search] query='{query[:50]}', top_k={top_k}, vec_db={type(self.vector_db).__name__}, embedder={type(self.embedder).__name__}")
         query_vector = self._embed_one_sentence(query)
+        logger.info(f"[GeneralTextMemory.search] query_vector dim={len(query_vector)}, first5={query_vector[:5]}")
         search_results = self.vector_db.search(query_vector, top_k)
+        logger.info(f"[GeneralTextMemory.search] vector_db returned {len(search_results)} results")
+        for i, r in enumerate(search_results[:3]):
+            logger.info(f"[GeneralTextMemory.search] result[{i}]: score={r.score}, memory={str(r.payload.get('memory',''))[:80]}")
         search_results = sorted(  # make higher score first
             search_results, key=lambda x: x.score, reverse=True
         )
