@@ -83,6 +83,8 @@ class GeneralTextMemory(BaseTextMemory):
 
         Args:
             memories: List of TextualMemoryItem objects or dictionaries to add.
+            user_name: Tenant identifier for data isolation. When provided,
+                stored as a top-level payload field so Qdrant can filter by it.
         """
         memory_items = [TextualMemoryItem(**m) if isinstance(m, dict) else m for m in memories]
 
@@ -92,10 +94,14 @@ class GeneralTextMemory(BaseTextMemory):
         # Create vector db items
         vec_db_items = []
         for item, emb in zip(memory_items, embed_memories, strict=True):
+            payload = item.model_dump()
+            # Store user_name as a top-level payload field for tenant isolation filtering
+            if user_name:
+                payload["user_name"] = user_name
             vec_db_items.append(
                 VecDBItem(
                     id=item.id,
-                    payload=item.model_dump(),
+                    payload=payload,
                     vector=emb,
                 )
             )
@@ -103,16 +109,20 @@ class GeneralTextMemory(BaseTextMemory):
         # Add to vector db
         self.vector_db.add(vec_db_items)
 
-    def update(self, memory_id: str, new_memory: TextualMemoryItem | dict[str, Any]) -> None:
+    def update(self, memory_id: str, new_memory: TextualMemoryItem | dict[str, Any], user_name: str | None = None) -> None:
         """Update a memory by memory_id."""
         memory_item = (
             TextualMemoryItem(**new_memory) if isinstance(new_memory, dict) else new_memory
         )
         memory_item.id = memory_id
 
+        payload = memory_item.model_dump()
+        if user_name:
+            payload["user_name"] = user_name
+
         vec_db_item = VecDBItem(
             id=memory_item.id,
-            payload=memory_item.model_dump(),
+            payload=payload,
             vector=self._embed_one_sentence(memory_item.memory),
         )
 
@@ -123,13 +133,17 @@ class GeneralTextMemory(BaseTextMemory):
         Args:
             query (str): The query to search for.
             top_k (int): The number of top results to return.
+            user_name (str, optional): Tenant identifier to filter results by.
         Returns:
             list[TextualMemoryItem]: List of matching memories.
         """
-        logger.info(f"[GeneralTextMemory.search] query='{query[:50]}', top_k={top_k}, vec_db={type(self.vector_db).__name__}, embedder={type(self.embedder).__name__}")
+        user_name = kwargs.get("user_name")
+        logger.info(f"[GeneralTextMemory.search] query='{query[:50]}', top_k={top_k}, user_name={user_name}, vec_db={type(self.vector_db).__name__}, embedder={type(self.embedder).__name__}")
         query_vector = self._embed_one_sentence(query)
         logger.info(f"[GeneralTextMemory.search] query_vector dim={len(query_vector)}, first5={query_vector[:5]}")
-        search_results = self.vector_db.search(query_vector, top_k)
+        # Apply user_name filter for tenant isolation when provided
+        search_filter = {"user_name": user_name} if user_name else None
+        search_results = self.vector_db.search(query_vector, top_k, filter=search_filter)
         logger.info(f"[GeneralTextMemory.search] vector_db returned {len(search_results)} results")
         for i, r in enumerate(search_results[:3]):
             logger.info(f"[GeneralTextMemory.search] result[{i}]: score={r.score}, memory={str(r.payload.get('memory',''))[:80]}")
