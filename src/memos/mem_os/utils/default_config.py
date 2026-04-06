@@ -64,7 +64,7 @@ def get_default_config(
         "config": {
             "provider": "openai",
             "api_key": openai_api_key,
-            "model_name_or_path": kwargs.get("embedder_model", "text-embedding-3-large"),
+            "model_name_or_path": kwargs.get("embedder_model", "text-embedding-3-small"),
             "base_url": openai_api_base,
         },
     }
@@ -167,7 +167,7 @@ def get_default_cube_config(
         "config": {
             "provider": "openai",
             "api_key": openai_api_key,
-            "model_name_or_path": kwargs.get("embedder_model", "text-embedding-3-large"),
+            "model_name_or_path": kwargs.get("embedder_model", "text-embedding-3-small"),
             "base_url": openai_api_base,
         },
     }

@@ -61,7 +61,7 @@ class UniversalAPIEmbedder(BaseEmbedder):
     @timed_with_status(
         log_prefix="model_timed_embedding",
         log_extra_args=lambda self, texts: {
-            "model_name_or_path": "text-embedding-3-large",
+            "model_name_or_path": "text-embedding-3-small",
             "text_len": len(texts),
             "text_content": texts,
         },
@@ -79,7 +79,7 @@ class UniversalAPIEmbedder(BaseEmbedder):
 
                 async def _create_embeddings():
                     return self.client.embeddings.create(
-                        model=getattr(self.config, "model_name_or_path", "text-embedding-3-large"),
+                        model=getattr(self.config, "model_name_or_path", "text-embedding-3-small"),
                         input=texts,
                     )
 
@@ -103,7 +103,7 @@ class UniversalAPIEmbedder(BaseEmbedder):
                                 model=getattr(
                                     self.config,
                                     "backup_model_name_or_path",
-                                    "text-embedding-3-large",
+                                    "text-embedding-3-small",
                                 ),
                                 input=texts,
                             )
