@@ -138,6 +138,10 @@ class GeneralTextMemoryConfig(BaseTextMemoryConfig):
         default_factory=EmbedderConfigFactory,
         description="Embedder configuration for the memory embedding",
     )
+    mode: str = Field(
+        "sync",
+        description="Processing mode: sync or async",
+    )
 
 
 class TreeTextMemoryConfig(BaseTextMemoryConfig):
