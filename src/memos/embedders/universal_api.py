@@ -76,18 +76,11 @@ class UniversalAPIEmbedder(BaseEmbedder):
         logger.info(f"Embeddings request with input: {texts}")
         if self.provider == "openai" or self.provider == "azure":
             try:
-
-                async def _create_embeddings():
-                    return self.client.embeddings.create(
-                        model=getattr(self.config, "model_name_or_path", "text-embedding-3-small"),
-                        input=texts,
-                    )
-
                 init_time = time.time()
-                response = asyncio.run(
-                    asyncio.wait_for(
-                        _create_embeddings(), timeout=int(os.getenv("MOS_EMBEDDER_TIMEOUT", 5))
-                    )
+                response = self.client.embeddings.create(
+                    model=getattr(self.config, "model_name_or_path", "text-embedding-3-small"),
+                    input=texts,
+                    timeout=int(os.getenv("MOS_EMBEDDER_TIMEOUT", 15)),
                 )
                 logger.info(f"Embeddings request succeeded with {time.time() - init_time} seconds")
                 return [r.embedding for r in response.data]
@@ -97,23 +90,15 @@ class UniversalAPIEmbedder(BaseEmbedder):
                         f"Embeddings request ended with {type(e).__name__} error: {e}, try backup client"
                     )
                     try:
-
-                        async def _create_embeddings_backup():
-                            return self.backup_client.embeddings.create(
-                                model=getattr(
-                                    self.config,
-                                    "backup_model_name_or_path",
-                                    "text-embedding-3-small",
-                                ),
-                                input=texts,
-                            )
-
                         init_time = time.time()
-                        response = asyncio.run(
-                            asyncio.wait_for(
-                                _create_embeddings_backup(),
-                                timeout=int(os.getenv("MOS_EMBEDDER_TIMEOUT", 5)),
-                            )
+                        response = self.backup_client.embeddings.create(
+                            model=getattr(
+                                self.config,
+                                "backup_model_name_or_path",
+                                "text-embedding-3-small",
+                            ),
+                            input=texts,
+                            timeout=int(os.getenv("MOS_EMBEDDER_TIMEOUT", 15)),
                         )
                         logger.info(
                             f"Backup embeddings request succeeded with {time.time() - init_time} seconds"
