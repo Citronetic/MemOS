@@ -422,6 +422,11 @@ export default {
     const cfg = buildConfig(api.pluginConfig);
     const log = api.logger ?? console;
 
+    // Debug: check if api.on actually registers hooks
+    const onResult = api.on("before_agent_start", async () => {});
+    log.warn?.(`[memos-cloud] DEBUG register() called. api.on returned: ${typeof onResult}, api.registrationMode: ${api.registrationMode}, api keys: ${Object.keys(api).join(",")}`);
+    // Remove the test hook - we'll register the real one below
+
     // Start 12-hour background update interval
     startUpdateChecker(log);
 
