@@ -728,8 +728,8 @@ class SingleCubeView(MemCubeView):
             f"in session {add_req.session_id}: {mem_ids_local}"
         )
 
-        # Add raw file nodes and edges
-        if self.mem_reader.save_rawfile and extract_mode == "fine":
+        # Add raw file nodes and edges (only supported by TreeTextMemory-based backends)
+        if self.mem_reader.save_rawfile and extract_mode == "fine" and hasattr(self.naive_mem_cube.text_mem, "add_rawfile_nodes_n_edges"):
             raw_file_mem_group = [
                 memory
                 for memory in flattened_local
