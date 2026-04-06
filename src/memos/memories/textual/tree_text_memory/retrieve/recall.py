@@ -93,13 +93,18 @@ class GraphMemoryRetriever:
                 user_name,
                 use_fast_graph=use_fast_graph,
             )
+            # Merge id_filter (user_id/session_id) into search_filter for
+            # user-level isolation in vector and fulltext recall paths.
+            merged_filter = {**(search_filter or {}), **(id_filter or {})}
+            merged_filter = merged_filter or None
+
             # Vector similarity search
             future_vector = executor.submit(
                 self._vector_recall,
                 query_embedding or [],
                 memory_scope,
                 top_k,
-                search_filter=search_filter,
+                search_filter=merged_filter,
                 search_priority=search_priority,
                 user_name=user_name,
             )
@@ -119,7 +124,7 @@ class GraphMemoryRetriever:
                     query_words=parsed_goal.keys or [],
                     memory_scope=memory_scope,
                     top_k=top_k,
-                    search_filter=search_filter,
+                    search_filter=merged_filter,
                     search_priority=search_priority,
                     user_name=user_name,
                 )
