@@ -55,8 +55,45 @@ cloud_router = APIRouter(prefix="/api/openmem/v1", tags=["Cloud Compat"])
 
 @cloud_router.post("/search/memory")
 def cloud_search_memory(search_req: APISearchRequest):
-    """Cloud API compat: forwards to /product/search."""
-    return search_handler.handle_search_memories(search_req)
+    """Cloud API compat: forwards to /product/search.
+
+    Converts self-hosted response format to Cloud API format:
+    - text_mem[].memories[] -> memory_detail_list[]
+    - pref_mem[].memories[] -> preference_detail_list[]
+    """
+    result = search_handler.handle_search_memories(search_req)
+    # Convert to Cloud API format expected by memos-cloud-openclaw-plugin
+    data = result.data if hasattr(result, 'data') else (result.get('data') if isinstance(result, dict) else None)
+    if data:
+        raw = data if isinstance(data, dict) else (data.model_dump() if hasattr(data, 'model_dump') else data.__dict__ if hasattr(data, '__dict__') else {})
+        memory_detail_list = []
+        for bucket in raw.get('text_mem', []):
+            if isinstance(bucket, dict):
+                for mem in bucket.get('memories', []):
+                    metadata = mem.get('metadata', {}) or {}
+                    memory_detail_list.append({
+                        'memory_key': mem.get('memory', '')[:100],
+                        'memory_value': mem.get('memory', ''),
+                        'relativity': metadata.get('relativity', 0.5),
+                    })
+        preference_detail_list = []
+        for bucket in raw.get('pref_mem', []):
+            if isinstance(bucket, dict):
+                for mem in bucket.get('memories', []):
+                    preference_detail_list.append({
+                        'preference': mem.get('memory', mem.get('preference', '')),
+                        'relativity': (mem.get('metadata', {}) or {}).get('relativity', 0.5),
+                    })
+        return {
+            'code': 200,
+            'message': 'Search completed successfully',
+            'data': {
+                'memory_detail_list': memory_detail_list,
+                'preference_detail_list': preference_detail_list,
+                'tool_memory_detail_list': [],
+            }
+        }
+    return result
 
 
 @cloud_router.post("/add/message")
