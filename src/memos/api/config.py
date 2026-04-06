@@ -1151,7 +1151,7 @@ class APIConfig:
                     "backend": "general_text",
                     "config": {
                         "extractor_llm": {"backend": "openai", "config": openai_config},
-                        "vector_db": {"backend": "qdrant", "config": {"host": os.getenv("QDRANT_HOST", "localhost"), "port": int(os.getenv("QDRANT_PORT", "6333")), "vector_dimension": int(os.getenv("EMBEDDING_DIMENSION", "1536"))}},
+                        "vector_db": {"backend": "qdrant", "config": {"host": os.getenv("QDRANT_HOST", "localhost"), "port": int(os.getenv("QDRANT_PORT", "6333")), "vector_dimension": int(os.getenv("EMBEDDING_DIMENSION", "1536")), "collection_name": "neo4j_vec_db"}},
                         "embedder": APIConfig.get_embedder_config(),
                     },
                 }
@@ -1244,7 +1244,7 @@ class APIConfig:
                     "backend": "general_text",
                     "config": {
                         "extractor_llm": {"backend": "openai", "config": openai_config},
-                        "vector_db": {"backend": "qdrant", "config": {"host": os.getenv("QDRANT_HOST", "localhost"), "port": int(os.getenv("QDRANT_PORT", "6333")), "vector_dimension": int(os.getenv("EMBEDDING_DIMENSION", "1536"))}},
+                        "vector_db": {"backend": "qdrant", "config": {"host": os.getenv("QDRANT_HOST", "localhost"), "port": int(os.getenv("QDRANT_PORT", "6333")), "vector_dimension": int(os.getenv("EMBEDDING_DIMENSION", "1536")), "collection_name": "neo4j_vec_db"}},
                         "embedder": APIConfig.get_embedder_config(),
                     },
                 }
