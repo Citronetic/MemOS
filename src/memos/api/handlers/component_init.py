@@ -225,8 +225,12 @@ def init_server() -> dict[str, Any]:
     logger.debug("MemCube created")
 
     if text_mem_backend == "general_text":
-        searcher = None
-        logger.debug("GeneralTextMemory mode - no tree searcher needed")
+        # Create a minimal searcher-like object for SearchHandler compatibility
+        class _MinimalSearcher:
+            def __init__(self, embedder):
+                self.embedder = embedder
+        searcher = _MinimalSearcher(text_mem.embedder)
+        logger.debug("GeneralTextMemory mode - using minimal searcher")
     else:
         tree_mem: TreeTextMemory = naive_mem_cube.text_mem
         searcher: Searcher = tree_mem.get_searcher(
