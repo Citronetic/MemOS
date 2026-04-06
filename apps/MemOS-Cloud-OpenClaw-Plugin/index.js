@@ -458,18 +458,20 @@ export default {
     }
 
     api.on("before_agent_start", async (event, ctx) => {
+      log.info?.(`[memos-cloud] before_agent_start fired. event keys: ${Object.keys(event || {}).join(",")}, ctx keys: ${Object.keys(ctx || {}).join(",")}, agentId: ${ctx?.agentId}, prompt length: ${(event?.prompt || "").length}`);
       if (!isAgentAllowed(cfg, ctx)) {
         log.info?.(`[memos-cloud] recall skipped: agent "${ctx?.agentId}" not in allowedAgents [${cfg.allowedAgents?.join(", ")}]`);
         return;
       }
       const agentCfg = resolveAgentConfig(cfg, ctx?.agentId);
-      if (!agentCfg.recallEnabled) return;
+      if (!agentCfg.recallEnabled) { log.info?.("[memos-cloud] recall skipped: recallEnabled=false"); return; }
       const userPrompt = stripOpenClawInjectedPrefix(event?.prompt || "");
-      if (!userPrompt || userPrompt.length < 3) return;
+      if (!userPrompt || userPrompt.length < 3) { log.info?.(`[memos-cloud] recall skipped: prompt too short (${userPrompt.length})`); return; }
       if (!agentCfg.apiKey) {
         warnMissingApiKey(log, "recall");
         return;
       }
+      log.info?.(`[memos-cloud] recall starting for user=${agentCfg.userId}, prompt="${userPrompt.slice(0,50)}..."`);
 
       try {
         const payload = buildSearchPayload(agentCfg, userPrompt, ctx);
@@ -491,13 +493,14 @@ export default {
     });
 
     api.on("agent_end", async (event, ctx) => {
+      log.info?.(`[memos-cloud] agent_end fired. success=${event?.success}, messages=${event?.messages?.length || 0}, agentId=${ctx?.agentId}`);
       if (!isAgentAllowed(cfg, ctx)) {
         log.info?.(`[memos-cloud] add skipped: agent "${ctx?.agentId}" not in allowedAgents [${cfg.allowedAgents?.join(", ")}]`);
         return;
       }
       const agentCfg = resolveAgentConfig(cfg, ctx?.agentId);
-      if (!agentCfg.addEnabled) return;
-      if (!event?.success || !event?.messages?.length) return;
+      if (!agentCfg.addEnabled) { log.info?.("[memos-cloud] add skipped: addEnabled=false"); return; }
+      if (!event?.success || !event?.messages?.length) { log.info?.(`[memos-cloud] add skipped: success=${event?.success}, msgs=${event?.messages?.length}`); return; }
       if (!agentCfg.apiKey) {
         warnMissingApiKey(log, "add");
         return;
