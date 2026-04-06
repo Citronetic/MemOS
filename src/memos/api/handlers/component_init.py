@@ -194,19 +194,24 @@ def init_server() -> dict[str, Any]:
 
     logger.debug("Memory manager initialized")
     tokenizer = FastTokenizer()
-    # Initialize text memory
-    text_mem = SimpleTreeTextMemory(
-        llm=llm,
-        embedder=embedder,
-        mem_reader=mem_reader,
-        graph_db=graph_db,
-        reranker=reranker,
-        memory_manager=memory_manager,
-        config=default_cube_config.text_mem.config,
-        internet_retriever=internet_retriever,
-        tokenizer=tokenizer,
-        include_embedding=bool(os.getenv("INCLUDE_EMBEDDING", "false") == "true"),
-    )
+    # Initialize text memory based on backend type
+    text_mem_backend = default_cube_config.text_mem.backend
+    if text_mem_backend == "general_text":
+        from memos.memories.textual.general import GeneralTextMemory
+        text_mem = GeneralTextMemory(config=default_cube_config.text_mem.config)
+    else:
+        text_mem = SimpleTreeTextMemory(
+            llm=llm,
+            embedder=embedder,
+            mem_reader=mem_reader,
+            graph_db=graph_db,
+            reranker=reranker,
+            memory_manager=memory_manager,
+            config=default_cube_config.text_mem.config,
+            internet_retriever=internet_retriever,
+            tokenizer=tokenizer,
+            include_embedding=bool(os.getenv("INCLUDE_EMBEDDING", "false") == "true"),
+        )
 
     logger.debug("Text memory initialized")
 
