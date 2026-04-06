@@ -46,6 +46,7 @@ def health_check():
 # /api/openmem/v1/add/message. These routes forward to the existing product
 # handlers so the same self-hosted MemOS works with the cloud plugin.
 # ---------------------------------------------------------------------------
+from fastapi import Request as FastAPIRequest  # noqa: E402
 from memos.api.product_models import APISearchRequest, APIADDRequest  # noqa: E402
 from memos.api.routers.server_router import search_handler, add_handler  # noqa: E402
 
@@ -59,8 +60,21 @@ def cloud_search_memory(search_req: APISearchRequest):
 
 
 @cloud_router.post("/add/message")
-def cloud_add_message(add_req: APIADDRequest):
-    """Cloud API compat: forwards to /product/add."""
+async def cloud_add_message(request: FastAPIRequest):
+    """Cloud API compat: forwards to /product/add.
+
+    Converts cloud plugin format to self-hosted format:
+    - async_mode: true/false (boolean) -> "async"/"sync" (string literal)
+    """
+    import json
+    body = await request.json()
+    # Cloud plugin sends async_mode as boolean, self-hosted expects "async"/"sync"
+    if "async_mode" in body:
+        if body["async_mode"] is True:
+            body["async_mode"] = "async"
+        elif body["async_mode"] is False:
+            body["async_mode"] = "sync"
+    add_req = APIADDRequest(**body)
     return add_handler.handle_add_memories(add_req)
 
 
