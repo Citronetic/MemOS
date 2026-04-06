@@ -78,13 +78,16 @@ class GeneralTextMemory(BaseTextMemory):
 
         return extracted_memories
 
-    def add(self, memories: list[TextualMemoryItem | dict[str, Any]], user_name: str | None = None, **kwargs) -> None:
+    def add(self, memories: list[TextualMemoryItem | dict[str, Any]], user_name: str | None = None, **kwargs) -> list[str]:
         """Add memories.
 
         Args:
             memories: List of TextualMemoryItem objects or dictionaries to add.
             user_name: Tenant identifier for data isolation. When provided,
                 stored as a top-level payload field so Qdrant can filter by it.
+
+        Returns:
+            List of added memory IDs.
         """
         memory_items = [TextualMemoryItem(**m) if isinstance(m, dict) else m for m in memories]
 
@@ -108,6 +111,8 @@ class GeneralTextMemory(BaseTextMemory):
 
         # Add to vector db
         self.vector_db.add(vec_db_items)
+
+        return [item.id for item in memory_items]
 
     def update(self, memory_id: str, new_memory: TextualMemoryItem | dict[str, Any], user_name: str | None = None) -> None:
         """Update a memory by memory_id."""
