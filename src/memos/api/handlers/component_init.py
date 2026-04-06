@@ -291,7 +291,7 @@ def init_server() -> dict[str, Any]:
 
     deepsearch_agent = DeepSearchMemAgent(
         llm=llm,
-        memory_retriever=tree_mem,
+        memory_retriever=text_mem,
     )
     # Return all components as a dictionary for easy access and extension
     return {
