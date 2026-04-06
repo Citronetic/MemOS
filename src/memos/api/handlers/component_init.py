@@ -224,16 +224,21 @@ def init_server() -> dict[str, Any]:
 
     logger.debug("MemCube created")
 
-    tree_mem: TreeTextMemory = naive_mem_cube.text_mem
-    searcher: Searcher = tree_mem.get_searcher(
-        manual_close_internet=os.getenv("ENABLE_INTERNET", "true").lower() == "false",
-        moscube=False,
-        process_llm=mem_reader.general_llm,
-    )
-    logger.debug("Searcher created")
+    if text_mem_backend == "general_text":
+        searcher = None
+        logger.debug("GeneralTextMemory mode - no tree searcher needed")
+    else:
+        tree_mem: TreeTextMemory = naive_mem_cube.text_mem
+        searcher: Searcher = tree_mem.get_searcher(
+            manual_close_internet=os.getenv("ENABLE_INTERNET", "true").lower() == "false",
+            moscube=False,
+            process_llm=mem_reader.general_llm,
+        )
+        logger.debug("Searcher created")
 
     # Set searcher to mem_reader
-    mem_reader.set_searcher(searcher)
+    if searcher is not None:
+        mem_reader.set_searcher(searcher)
 
     # Initialize feedback server
     feedback_server = SimpleMemFeedback(
