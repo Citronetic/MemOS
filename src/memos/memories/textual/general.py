@@ -155,9 +155,10 @@ class GeneralTextMemory(BaseTextMemory):
         search_results = sorted(  # make higher score first
             search_results, key=lambda x: x.score, reverse=True
         )
-        result_memories = [
-            TextualMemoryItem(**search_item.payload) for search_item in search_results
-        ]
+        result_memories = []
+        for search_item in search_results:
+            payload = {k: v for k, v in search_item.payload.items() if k != "user_name"}
+            result_memories.append(TextualMemoryItem(**payload))
         return result_memories
 
     def get(self, memory_id: str, user_name: str | None = None) -> TextualMemoryItem:
