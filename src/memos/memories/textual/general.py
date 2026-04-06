@@ -78,7 +78,7 @@ class GeneralTextMemory(BaseTextMemory):
 
         return extracted_memories
 
-    def add(self, memories: list[TextualMemoryItem | dict[str, Any]]) -> None:
+    def add(self, memories: list[TextualMemoryItem | dict[str, Any]], user_name: str | None = None, **kwargs) -> None:
         """Add memories.
 
         Args:
