@@ -2,7 +2,7 @@ import logging
 import os
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from starlette.staticfiles import StaticFiles
 
@@ -38,6 +38,33 @@ def health_check():
         "service": "memos",
         "version": app.version,
     }
+
+
+# ---------------------------------------------------------------------------
+# Cloud API compatibility layer
+# The OpenClaw memos-cloud plugin calls /api/openmem/v1/search/memory and
+# /api/openmem/v1/add/message. These routes forward to the existing product
+# handlers so the same self-hosted MemOS works with the cloud plugin.
+# ---------------------------------------------------------------------------
+from memos.api.product_models import APISearchRequest, APIADDRequest  # noqa: E402
+from memos.api.routers.server_router import search_handler, add_handler  # noqa: E402
+
+cloud_router = APIRouter(prefix="/api/openmem/v1", tags=["Cloud Compat"])
+
+
+@cloud_router.post("/search/memory")
+def cloud_search_memory(search_req: APISearchRequest):
+    """Cloud API compat: forwards to /product/search."""
+    return search_handler.handle_search_memories(search_req)
+
+
+@cloud_router.post("/add/message")
+def cloud_add_message(add_req: APIADDRequest):
+    """Cloud API compat: forwards to /product/add."""
+    return add_handler.handle_add_memories(add_req)
+
+
+app.include_router(cloud_router)
 
 
 # Request validation failed
