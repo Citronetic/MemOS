@@ -14,8 +14,8 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Set Hugging Face mirror
-ENV HF_ENDPOINT=https://hf-mirror.com
+# Set Hugging Face mirror (comment out if not needed in your region)
+# ENV HF_ENDPOINT=https://hf-mirror.com
 
 # Install Python packages
 COPY docker/requirements.txt .
@@ -31,5 +31,5 @@ ENV PYTHONPATH=/app/src
 # Expose port
 EXPOSE 8000
 
-# Start the docker
-CMD ["uvicorn", "memos.api.server_api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Start the server (no --reload for production)
+CMD ["uvicorn", "memos.api.server_api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
